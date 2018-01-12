@@ -4,14 +4,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 
-#gives the number of NaNs in a column
+#gives the number of NaNs in every column in a Data frame
 def nanCount(df):
   for column in df.columns:
     print str(df[column].isnull().sum().sum()) + ' nans in ' + column
 
 
-#Note that this csv file does NOT contain statistics pertaining to goalies
-def formatCSV():
+def main():
+  #Note that this csv file does NOT contain statistics pertaining to goalies
   df = pd.read_csv('hky_stats.csv')
   df['flPoints'] = df.goals*3.0 + df.shots*0.1 + df.assists*2 + df.ppPoints + df.shPoints*2
   y = df['flPoints']
@@ -22,11 +22,14 @@ def formatCSV():
   df = df.drop(['faceoffWinPctg','playerDraftOverallPickNo','playerDraftRoundNo','playerHeight','playerWeight','playerInHockeyHof','playerIsActive'],axis=1)
   df.gameDate = pd.to_datetime(df.gameDate)
   df.playerBirthDate = pd.to_datetime(df.playerBirthDate)
-  AgeNDraft = df[['playerBirthDate','playerDraftYear']]
+  AgeNDraft = df[['playerName','playerBirthDate','playerDraftYear']]
   #print nanCount(dates)
   #cat = pd.get_dummies(cat)
-  nanCount(df)
-  AgeVDraft(AgeNDraft)
+  DraftYearSub = AgeVDraft(AgeNDraft)
+  #for name in DraftYearSub.index: 
+    #print DraftYearSub.get_value(name,'sudoDraftYears')
+ #   NameMatch = df[df.playerName==name]
+  #  NameMatch = DraftYearSub.iloc[name]['sudoDraftYear'])
   #FillEDA(NanColumns,y)
 
 def FillEDA(X,y):
@@ -46,18 +49,26 @@ def FillEDA(X,y):
 #as of now this function throws up a couple histograms but ultimatly it will
 #return a set of draft years to be used for the undrafted players
 def AgeVDraft(X):
-  naX = X[X.isnull()]
-  X = X.dropna()
+  naX = X[X.playerDraftYear.isnull()].drop_duplicates('playerName')
+  X = X.dropna().drop_duplicates('playerName')
   AgeAtDraft = X.playerDraftYear - X.playerBirthDate.dt.year
   np.random.set_state(randstate())
   naSubs = np.random.choice(AgeAtDraft,len(naX))
-  for i in AgeAtDraft.unique():
-    print 'probability of joining at age ' + str(i) + ' is ' + str(len(AgeAtDraft[AgeAtDraft==i])/float(len(AgeAtDraft)))
-  print AgeAtDraft.mean()
-  plt.figure()
-  plt.hist(AgeAtDraft,alpha = 0.6)
-  plt.hist(naSubs,alpha = 0.6)
-  plt.show()
+  #Uncomment to see probabilities for age of being drafted
+  #for i in AgeAtDraft.unique():
+    #print 'probability of joining at age ' + str(i) + ' is ' + str(len(AgeAtDraft[AgeAtDraft==i])/float(len(AgeAtDraft)))
+  #Uncomment the below to compare frequencies of age at draft for known and 
+  #synthisized data
+  #plt.figure()
+  #plt.hist([AgeAtDraft,naSubs],normed=True)
+  #plt.show()
+  naSubs = naSubs + naX.playerBirthDate.dt.year 
+  naX.set_index('playerName',inplace=True)
+  naX['sudoDraftYears'] = naSubs
+  #naSubs and naX.sudoDraftYears produce different results, look into this
+  print naSubs
+  print naX.head()
+  return naX
 
 #This is the random state used in AgeVDraft
 def randstate():
@@ -187,5 +198,5 @@ def randstate():
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        3364468289, 2975356430, 3565504769, 2887643733,   56870307,
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               2643934895,  380880623, 2529203994, 1506854894]), 624, 0, 0.0)
 
-formatCSV()
+main()
 
