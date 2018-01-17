@@ -4,199 +4,62 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 
+def main():
+  #Note that this csv file does NOT contain statistics pertaining to goalies
+  df = pd.read_csv('hky_stats.csv')
+  df['flPoints'] = df.goals*3.0 + df.shots*0.1 + df.assists*2 + df.ppPoints + df.shPoints*2
+  df.gameDate = pd.to_datetime(df.gameDate)
+  df.playerBirthDate = pd.to_datetime(df.playerBirthDate)
+  BirthNDraft = df[['playerName','playerBirthDate','playerDraftYear','flPoints']]
+  # Filling draft number and round with the means of thier columns
+  #FillEDA(NanColumns,y)
+  NanColumns = df[['playerDraftOverallPickNo','playerDraftRoundNo']]
+  for column in NanColumns.columns:
+    df[column].fillna(NanColumns[column].mean(),inplace=True)
+  #BirthyearVDraftyear(BirthNDraft)
+  similarMetrics = df[['goals','gameWinningGoals','otGoals','ppGoals','shGoals','points','shPoints','ppPoints']]
+  #print nanCount(df)
+
+# Takes in the main data frame and returns a streamlined dataframe
+def drop(X):
+  #droping unnecisary or redundent features
+  df = df.drop(['Unnamed: 0','gamesPlayed','gameId','playerBirthCity','playerBirthCountry','plusMinus','playerId','playerBirthStateProvince','shootingPctg','playerFirstName','playerLastName','playerNationality','playerDraftYear'],axis=1) 
+  #sepparating out features I want to deal with later, figure out if timeOnIcePerGame is an average of all games or per the game in question
+  #df = df.drop(['assists','gameWinningGoals','goals','otGoals','penaltyMinutes','points','ppGoals','ppPoints','shGoals','shPoints','shiftsPerGame','shots','timeOnIcePerGame'], axis=1)
+  return df
+
 #gives the number of NaNs in every column in a Data frame
 def nanCount(df):
   for column in df.columns:
     print str(df[column].isnull().sum().sum()) + ' nans in ' + column
 
-
-def main():
-  #Note that this csv file does NOT contain statistics pertaining to goalies
-  df = pd.read_csv('hky_stats.csv')
-  df['flPoints'] = df.goals*3.0 + df.shots*0.1 + df.assists*2 + df.ppPoints + df.shPoints*2
-  y = df['flPoints']
-  df = df.drop(['Unnamed: 0','gamesPlayed','gameId','playerBirthCity','playerBirthCountry','playerId','playerBirthStateProvince','playerFirstName','playerLastName','playerNationality','flPoints'],axis=1)
-  #sepparating out features I want to deal with later, figure out if timeOnIcePerGame is an average of all games or per the game in question
-  df = df.drop(['assists','gameWinningGoals','goals','otGoals','penaltyMinutes','plusMinus','points','ppGoals','ppPoints','shGoals','shPoints','shiftsPerGame','shootingPctg','shots','timeOnIcePerGame'], axis=1)
-  NanColumns = df[['playerDraftOverallPickNo','playerDraftRoundNo','playerDraftYear']]
-  df = df.drop(['faceoffWinPctg','playerDraftOverallPickNo','playerDraftRoundNo','playerHeight','playerWeight','playerInHockeyHof','playerIsActive'],axis=1)
-  df.gameDate = pd.to_datetime(df.gameDate)
-  df.playerBirthDate = pd.to_datetime(df.playerBirthDate)
-  AgeNDraft = df[['playerName','playerBirthDate','playerDraftYear']]
-  #print nanCount(dates)
-  #cat = pd.get_dummies(cat)
-  DraftYearSub = AgeVDraft(AgeNDraft)
-  #for name in DraftYearSub.index: 
-    #print DraftYearSub.get_value(name,'sudoDraftYears')
- #   NameMatch = df[df.playerName==name]
-  #  NameMatch = DraftYearSub.iloc[name]['sudoDraftYear'])
-  #FillEDA(NanColumns,y)
-
-def FillEDA(X,y):
-  X['scores'] = y
+# Performs some baisic EDA to determine if nan columns are worth keeping 
+def FillEDA(X):
   naX = X[X.isnull()]
   plt.figure()
-  plt.hist(y)
+  plt.hist(flPoints)
   X.dropna()
   y = X.scores
   X = X.drop(['scores'],axis=1)
   for column in X.columns:
     plt.figure()
-    plt.scatter(X[column],y)
+    plt.scatter(X[column],X.flPoints)
     plt.title(column)
   plt.show()
 
-#as of now this function throws up a couple histograms but ultimatly it will
-#return a set of draft years to be used for the undrafted players
-def AgeVDraft(X):
-  naX = X[X.playerDraftYear.isnull()].drop_duplicates('playerName')
-  X = X.dropna().drop_duplicates('playerName')
-  AgeAtDraft = X.playerDraftYear - X.playerBirthDate.dt.year
-  np.random.set_state(randstate())
-  naSubs = np.random.choice(AgeAtDraft,len(naX))
-  #Uncomment to see probabilities for age of being drafted
-  #for i in AgeAtDraft.unique():
-    #print 'probability of joining at age ' + str(i) + ' is ' + str(len(AgeAtDraft[AgeAtDraft==i])/float(len(AgeAtDraft)))
-  #Uncomment the below to compare frequencies of age at draft for known and 
-  #synthisized data
-  #plt.figure()
-  #plt.hist([AgeAtDraft,naSubs],normed=True)
-  #plt.show()
-  naSubs = naSubs + naX.playerBirthDate.dt.year 
-  naX.set_index('playerName',inplace=True)
-  naX['sudoDraftYears'] = naSubs
-  #naSubs and naX.sudoDraftYears produce different results, look into this
-  print naSubs
-  print naX.head()
-  return naX
-
-#This is the random state used in AgeVDraft
-def randstate():
-  return ('MT19937', np.array([3805520177, 1644753190, 2003254364, 2559441520, 2836677085,
-                                   3648162984, 3363534798, 1941752318, 2474414709, 2447408086,
-                                   2670539337,  517692988, 2706970065, 1235262008, 1586346842,
-                                    196656875,  406467436, 2625462475, 3201712456, 3083585032,
-                                   3334802519,  532795736, 4262291291, 3984462861, 4238734475,
-                                   3294729352, 2089209495,  784390508,  363436233, 2809247660,
-                                   3122259496,  149826620, 3608467743, 3020490539, 3121100437,
-                                   3326865458, 1930612641, 2743430312, 3976535771, 3624354781,
-                                   3078165075,  143615067, 2965408318, 3367413091, 3697177918,
-                                   1547713445, 3001916400,  367280267, 3090316317, 3859556385,
-                                   1214146454, 3111739523, 1244960722, 3123671840, 1185651766,
-                                   3924769943, 3897123593,  568065288, 2530323244, 1399089203,
-                                   2056207681,  394112836, 2028006371, 4266386621, 2932927942,
-                                   1234922830, 1927949433, 1088496580, 2382592982,  248926278,
-                                   2633439728, 1542633791,  311438550, 1872531907, 4127182753,
-                                   3017788643, 1182899438, 3883988423, 2887293975, 1702366494,
-                                   2903128847, 3186471819, 2718240266, 3436058653, 2164273543,
-                                   2556037191, 1615470062, 1385882937, 4221034444, 3649226676,
-                                   1045431179, 1454265759, 2279345254, 1833076647, 1682491424,
-                                    986671603, 3846429574, 1540645052, 1506280932, 3072098652,
-                                   3568170943, 1550670141, 2033157216,  985949223, 2186549557,
-                                   1665583840,  945991113, 2492487415, 2065056747,  516638887,
-                                   1366225876, 1913864378, 1333490860, 1959810842, 3547717633,
-                                   4151091526, 3898202574,  863280514, 2804174467, 1472241663,
-                                   2283485969, 4017004041,  225456553, 3255044631,  743742882,
-                                    850498225, 1224122209, 3797764928, 4009312780,  682153830,
-                                   1325897658, 1460923019, 3463384082, 2970815891, 2208258081,
-                                   1111568540, 4071734520,  755989887, 3760943423, 2851972636,
-                                   2455502274,  986637256, 2220953455,  943428849, 3098383721,
-                                   3570915548, 4174602996, 2623993938, 2179586542, 3821415177,
-                                   4261685024,  640691840, 1799054213, 1226539834, 3761066497,
-                                   2103102393, 4122971980, 3122515846,  321074787, 3053489011,
-                                   2347850237, 3286966463, 2476358450, 1592350478,  827982116,
-                                   1482938955, 3121879031,  850252668, 2369283165, 2321494760,
-                                   1887551159, 1035017532,  399678493, 1464865281, 2215896389,
-                                   1946466024, 1612147203,  156844192, 2284033721, 3362529247,
-                                   2430692257, 2161365579, 3491375521, 1500271262, 1835978466,
-                                   3809398049, 3390161537, 3313582385, 3365162263, 3693712233,
-                                   3941821702, 3810070981, 4080174808,  772911817, 2067907445,
-                                    720091651, 1643694787, 3975307933, 1659683044, 2505323735,
-                                   3573460869, 4242642679, 2442117639, 1964534674, 1099482927,
-                                    644151981, 1094185310, 3384839279, 2195249102, 2807487447,
-                                   2965114974, 1572946394, 3425561073, 1434996123,  784976527,
-                                   1915733987, 1423177665, 2312980098, 1297829764,  404532757,
-                                   2326600560, 3607008909, 1145763589, 3618636415, 1283184537,
-                                   3639263273, 2135749099, 3689457148, 4067981419,  520187565,
-                                   2642400088, 1257928013, 2878941682, 3692216077, 2353620311,
-                                   2254815483, 3968191184, 1177931380, 2419847688, 1411858298,
-                                   3247481895, 3885085682,  129448430, 3631794750, 3750031006,
-                                    497103119, 1396039762, 4089540125,  253970161, 3613557775,
-                                   1478832348, 2982140478, 3209109520,  552698962,  737185588,
-         2428356253, 4034124350, 1446867898, 3074011052, 2026726281,
-                3748649197, 1382703992, 2739706118, 3226565239, 1323027372,
-                       4116473684, 2487041297, 3273900326,  884277989, 1992615231,
-                              2875302953,   79000901, 2744859784,  649110354, 1568719161,
-                                     2657927535, 1561801518, 3671641899, 1675208685, 4047011661,
-                                             978817052, 1858552379,  505023748,  877212395,   28244821,
-                                                    1681335814,  618811422, 3254146978, 3745506740, 3520662395,
-                                                            356173217, 4111837976, 2177005784, 3270433790, 1106367639,
-                                                                   1536808058, 3328809644, 3138828268, 1695405101, 2292115982,
-                                                                           803639281, 2370902249, 4107515307, 3107476656, 2170432936,
-                                                                                   575375370,  342954013, 4115089719, 1819594095, 1837776198,
-                                                                                          1808429382,  279627346, 3579332761, 2553183116, 1067951831,
-                                                                                                 2736043749,  310996455, 2971268706,  173839646, 3971213095,
-                                                                                                        3093233450, 4244129092, 1960043848, 2430464501, 3406610970,
-                                                                                                               1061360650, 2792331534,  745142030, 1160445479,  509532934,
-                                                                                                                       870690859, 4249853311, 1987495177, 3501041271, 2425028019,
-                                                                                                                              2622523668, 2268262587, 4221845668, 1404072946, 1908699910,
-                                                                                                                                     2624890986, 3607363919,  809321525, 3879426310, 2630915925,
-                                                                                                                                            1980040895, 2900970732, 1434601745, 2002818719, 2436913439,
-                                                                                                                                                   3476173311, 1745215859, 1579051359,  608848429, 3347770993,
-                                                                                                                                                          3114924683, 3172033737, 1848298208, 3220528261,  379251762,
-                                                                                                                                                                 4180246363,  363517110, 2457404877, 4186670198, 3368176218,
-                                                                                                                                                                        2417387245, 4080936700, 1869854324, 2437461614, 4025740419,
-                                                                                                                                                                                721982391, 2193518105, 3044866065, 1405411002,  267764572,
-                                                                                                                                                                                       2470854143, 1452721856, 4234024418, 1457268381,  207909972,
-                                                                                                                                                                                              1274560823, 1379290596, 1673767475, 3481964865,    7620614,
-                                                                                                                                                                                                     3910028364, 2255372497, 1641247189, 2303458337, 3138301746,
-                                                                                                                                                                                                            3910879359, 3387745177, 1984595614, 1689758685, 2019455830,
-                                                                                                                                                                                                                    618118886,  825946816, 4039432075, 3228804949, 1125980017,
-                                                                                                                                                                                                                           3763635863, 3549318736, 2549881989, 2539469183, 3146761099,
-                                                                                                                                                                                                                                  3987020139, 2084635879, 4171481756,  429600266, 4209092151,
-                                                                                                                                                                                                                                         3536313327,  666946581, 2865477523,  706316695, 1459790197,
-                                                                                                                                                                                                                                                4024484618, 3059644149, 1906600320, 2880773215, 3614483279,
-                                                                                                                                                                                                                                                        955693843, 4268810582,  492804358, 3476973009, 1037935789,
-                                                                                                                                                                                                                                                               4264932593, 3280976199, 2857616853, 1981020428, 1692386186,
-                                                                                                                                                                                                                                                                      1162570106,  585220257, 3949023556, 1904844981, 1932024786,
-                                                                                                                                                                                                                                                                               64231516, 3399927147,  321703205, 2115899107, 1287010037,
-                                                                                                                                                                                                                                                                                      3307680069, 1027454593, 2218986922, 4200460784, 1807589971,
-                                                                                                                                                                                                                                                                                             3338616132, 2075834267,   43854716, 3869497319, 3992208722,
-                                                                                                                                                                                                                                                                                                     225083461, 1911443407, 4097944185,  538771592, 3976654183,
-                                                                                                                                                                                                                                                                                                            3973413429, 2568917090, 3918103152, 2129645458,  716269512,
-                                                                                                                                                                                                                                                                                                                   2117713824, 3229279965, 2921216936,  263364570, 3800033852,
-                                                                                                                                                                                                                                                                                                                          3701522613,  743733089, 2476790910, 2851057368,  473530533,
-                                                                                                                                                                                                                                                                                                                                 1485369451, 3438551786, 3320527271, 2890748639, 2361308931,
-                                                                                                                                                                                                                                                                                                                                        2663620364, 3109588012, 2783163995, 3574187465, 2106814391,
-                                                                                                                                                                                                                                                                                                                                               2310369454, 1768857490,  745956038,  312763058,  101351266,
-                                                                                                                                                                                                                                                                                                                                                      3361871667,  753969890, 2937850594,  676210032,  391372698,
-                                                                                                                                                                                                                                                                                                                                                             3499120767,  891552448, 1045294777, 3605991983,  397196016,
-                                                                                                                                                                                                                                                                                                                                                                     245954000,  218172992, 2852319318,  911849708, 1809548734,
-                                                                                                                                                                                                                                                                                                                                                                              98538872, 1305259282, 4029190768, 4185429027,  993052775,
-                                                                                                                                                                                                                                                                                                                                                                                     2708634356, 1530509375, 3771203000, 1613222838, 2644861519,
-                                                                                                                                                                                                                                                                                                                                                                                            2121614018, 1581259366, 3063388217, 2742465100, 2912208687,
-                                                                                                                                                                                                                                                                                                                                                                                                   1118756255, 3534075275,  197272165, 1493452250, 3514960763,
-                                                                                                                                                                                                                                                                                                                                                                                                          1452832750, 1661277124, 4026071907, 3577752174, 2842437943,
-                                                                                                                                                                                                                                                                                                                                                                                                                 3580741748,  511269586, 4188118222,  450916692, 1832743915,
-                                                                                                                                                                                                                                                                                                                                                                                                                         463897495,  280354814, 2074248093, 1811982672, 2059122709,
-                                                                                                                                                                                                                                                                                                                                                                                                                                 832901536, 3523984831, 1797053863,  659894804, 1119216529,
-                                                                                                                                                                                                                                                                                                                                                                                                                                        1027127934, 1187176713, 2228354226, 3711290777, 1694323008,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                160382581,   54088113, 2561672543,  293924403, 2865068576,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        957275058, 3351307045, 3906186974, 2779177950, 4269598390,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                349988418, 3189038765, 2756528235, 3873167277,  960327851,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                       2439748186,  804203498, 4253776102,  376715688, 2045351076,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                              1636521765,  171132543, 3449957422, 1217137984,  797561011,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     4150582968, 1157077932,   62541463, 3702424522, 2394268314,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             176043785,  507502347,  924123752, 2112527639, 1323318049,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    1663430000, 1175702509,  871763556,  727006072, 2761619048,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            990445535,  927972596, 3570187038, 1415409324, 2555744824,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   3101180964,  852321336,  754814869, 1134684263, 4148709332,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           214637685, 1695143016, 1443666946, 1917467330, 4095860840,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  4183993285, 1173167148, 3731447687, 2829023131, 2563846031,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         3594628947,  632742158, 2509292424, 2653718717,  337965213,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                1913545182, 2087256071,  251424646, 3665189094, 1434552500,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       3364468289, 2975356430, 3565504769, 2887643733,   56870307,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              2643934895,  380880623, 2529203994, 1506854894]), 624, 0, 0.0)
+# takes in a dataframe containing playername, playerbirthdate, and flpoints and
+# plots both draftyear and birthyear vs flpoints on a scatterplot
+def BirthyearVDraftyear(X):
+  #translates birth year for a better comparison
+  X['playerBirthDate'] = X.playerBirthDate.dt.year + 18 
+  plt.figure()
+  plt.scatter(X.playerDraftYear,X.flPoints,alpha=0.5)
+  plt.scatter(X.playerBirthDate,X.flPoints,color='r',alpha=0.5)
+  plt.title('Birth year and Draft year vs FL points')
+  plt.xlabel('Year')
+  plt.ylabel('FL points')
+  plt.xlim([1988,2018])
+  plt.ylim([0,17])
+  plt.show()
 
 main()
-
