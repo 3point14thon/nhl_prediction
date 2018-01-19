@@ -17,16 +17,26 @@ def main():
   for column in NanColumns.columns:
     df[column].fillna(NanColumns[column].mean(),inplace=True)
   #BirthyearVDraftyear(BirthNDraft)
-  similarMetrics = df[['goals','gameWinningGoals','otGoals','ppGoals','shGoals','points','shPoints','ppPoints']]
   #print nanCount(df)
+  #GameDataEDA(df)
+  df = drop(df)
+  df.to_csv('clean_hky_stats.csv',encoding='utf-8')
+
+def GameDataEDA(X):
+  name = 'Alex Ovechkin'
+  PlayerStat = X[X.playerName==name]
+  plt.figure()
+  plt.scatter(PlayerStat.gameDate,PlayerStat.goals)
+  plt.title(name)
+  plt.show()
 
 # Takes in the main data frame and returns a streamlined dataframe
 def drop(X):
   #droping unnecisary or redundent features
-  df = df.drop(['Unnamed: 0','gamesPlayed','gameId','playerBirthCity','playerBirthCountry','plusMinus','playerId','playerBirthStateProvince','shootingPctg','playerFirstName','playerLastName','playerNationality','playerDraftYear'],axis=1) 
+  X = X.drop(['Unnamed: 0','gamesPlayed','gameId','playerBirthCity','playerBirthCountry','plusMinus','playerId','playerBirthStateProvince','shootingPctg','playerFirstName','playerLastName','playerNationality','playerDraftYear'],axis=1) 
   #sepparating out features I want to deal with later, figure out if timeOnIcePerGame is an average of all games or per the game in question
-  #df = df.drop(['assists','gameWinningGoals','goals','otGoals','penaltyMinutes','points','ppGoals','ppPoints','shGoals','shPoints','shiftsPerGame','shots','timeOnIcePerGame'], axis=1)
-  return df
+  X = X.drop(['assists','gameWinningGoals','goals','otGoals','penaltyMinutes','points','ppGoals','ppPoints','shGoals','shPoints','shiftsPerGame','shots','timeOnIcePerGame'], axis=1)
+  return X
 
 #gives the number of NaNs in every column in a Data frame
 def nanCount(df):
