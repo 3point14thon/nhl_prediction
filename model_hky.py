@@ -6,18 +6,23 @@ from sklearn.model_selection import GridSearchCV
 def main():
   df = pd.read_csv('clean_hky_stats.csv')
   df = df.drop('Unnamed: 0',axis=1)
+  df.gameDate = pd.to_datetime(df.gameDate)
+  df.playerBirthDate = pd.to_datetime(df.playerBirthDate)
   df = df.sort_values(by='gameDate')
   df = df.reindex()
+  #df = df.drop(['playerBirthDate','gameDate'],axis=1)
+  print df.dtypes
   df = encode(df)
   TsPercent = 0.3
+  df['playerBirthDate'] = df['playerBirthDate'].apply(lambda x: x.toordinal())
+  df['gameDate'] = df['gameDate'].apply(lambda x: x.toordinal())
   Train = df.iloc[:int(len(df)*(1-TsPercent))]
   Test = df.iloc[int(len(df)*(1-TsPercent)):]
-  print Train.head()
   yTrain = Train.flPoints
   yTest = Test.flPoints
   XTrain = Train.drop('flPoints',axis=1)
   XTest = Test.drop('flPoints',axis=1)
-  pp = preprocessing.normalize(XTrain)
+  pp = preprocessing.Normalizer()
   pp.fit(XTrain)
   XTrain = pp.transform(XTrain)
   XTest = pp.transform(XTest)
@@ -25,6 +30,7 @@ def main():
   parameters = {'kernel':('linear','rbf'),'C':(0.001,0.01,0.1,1,10,100,1000),
                 'gamma':(0.00001,0.0001,0.001,0.01,0.1,1,10),
                 'epsilon':(0.0001,0.001,0.01,0.1,1)}
+  print 'Generateing model, this may take a while'
   model = GridSearchCV(svr,parameters)
   model.fit(XTrain,yTrain)
   print model.get_params()
