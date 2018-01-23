@@ -1,4 +1,5 @@
 import pandas as pd
+import joblib 
 from sklearn import preprocessing
 from sklearn.svm import SVR
 from sklearn.model_selection import GridSearchCV
@@ -33,6 +34,7 @@ def main():
   print 'Generateing model, this may take a while'
   model = GridSearchCV(svr,parameters)
   model.fit(XTrain,yTrain)
+  joblib.dump(model,'SVR_model.pkl')
   print model.get_params()
   #model.score(XTest,yTest)
 
