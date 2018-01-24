@@ -23,14 +23,16 @@ def main():
   df.to_csv('clean_hky_stats.csv',encoding='utf-8')
 
 def GameDataEDA(X):
-  names = X.playerName.drop_duplicates().iloc[:9]
+  names = X.playerName.drop_duplicates().iloc[:3]
   for name in names:
-    name = X.at[i,'playerName']
-    PlayerStat = X[X.playerName==name].reindex()
-      for i in PlayerStat.index():
-        PlayerStat.at[i,'averageTOI'] = PlayerStat.mean({i,'timeOnIcePerGame'})#probably wont work
+    PlayerStat = X[X.playerName==name].sort_values(by='gameDate')
+    PlayerStat.index = range(len(PlayerStat))
+    for i in PlayerStat.index:
+      PlayerStat.at[i,'averageTOI'] = PlayerStat.timeOnIcePerGame.iloc[:i].mean()
+    print PlayerStat
     plt.figure()
-    plt.scatter(PlayerStat.gameDate,[PlayerStat.timeOnIcePerGame,PlayerStat.averageTOI])
+    plt.scatter(PlayerStat.gameDate,PlayerStat.averageTOI,color='r')
+    plt.scatter(PlayerStat.gameDate,PlayerStat.timeOnIcePerGame)
     plt.title(name)
   plt.show()
 
