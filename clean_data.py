@@ -18,15 +18,31 @@ def main():
     df[column].fillna(NanColumns[column].mean(),inplace=True)
   #BirthyearVDraftyear(BirthNDraft)
   #print nanCount(df)
-  #GameDataEDA(df,'penaltyMinutes')
+  #GameDataEDA(df,'shiftsPerGame')
   #df = drop(df)
   df = df.sort_values('gameDate')
-  graphTOI(df,'penaltyMinutes')
-  #for player in df.playerName.drop_duplicates():
-   # PlayerGames = df[df.playerName==player]
-    #df.loc[df.playerName==player, 'timeOnIcePerGame'] = PlayerGames.timeOnIcePerGame.rolling(5).mean()
+  df = RollingAvgFill(df,'timeOnIcePerGame')
+  #df = RollingAvgFill(df,'penaltyMinutes')
+  #df = RollingAvgFill(df,'shiftsPerGame')
+  #graphTOI(df,'shiftsPerGame')
   df.to_csv('clean_hky_stats.csv',encoding='utf-8')
-  
+ 
+def RollingAvgFill(df,feature):
+  i = 0
+  for player in df.playerName.drop_duplicates():
+    PlayerGames = df[df.playerName==player]
+    PlayerGames.index = range(len(PlayerGames))
+    rollingmean = PlayerGames[feature].rolling(5).mean()
+    rollingmean.index = range(len(rollingmean))
+    rollingmean = rollingmean.drop(len(rollingmean)-1,axis=0)
+    rollingmean.loc[-1] = np.nan
+    rollingmean = rollingmean.sort_index()
+    rollingmean.iloc[1:3] = PlayerGames[feature].iloc[:2]
+    if i == len(df.playerName.drop_duplicates()): break
+    i += 1
+    df.loc[df.playerName==player, feature] = rollingmean
+  return df
+
 def graphTOI(df,feature):
   i = 0
   c = ['r','g','b','y']
@@ -60,7 +76,9 @@ def GameDataEDA(X, feature):
     plt.scatter(PlayerStat.flPoints,PlayerStat.average,color='r')
     plt.scatter(PlayerStat.flPoints,PlayerStat[feature])
     plt.title(name)
+  print PlayerStat[['penaltyMinutes','rollingAvg3']]
   plt.show()
+  
 
 # Takes in the main data frame and returns a streamlined dataframe
 def drop(X):
@@ -105,3 +123,4 @@ def BirthyearVDraftyear(X):
   plt.show()
 
 main()
+
