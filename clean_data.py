@@ -27,9 +27,9 @@ def main():
   #graphTOI(df,'shiftsPerGame')
   df.to_csv('clean_hky_stats.csv',encoding='utf-8')
 
-# This function sorts through df and delets players who played in fewer games
-# than the threshold. If the player passes game attributes like time on ice are
-# replaced by a rolling average of the past three instances of the attribute.
+# This function sorts through df and uses a running average for the expected value
+# of an attribute for the next game if a player has played in fewer than insert variable here
+# games. Otherwise  it usespasses a rolling average of the past three instances of the attribute.
 def RollingAvgFill(df,feature):
   i = 10
   c = 0
