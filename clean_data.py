@@ -31,23 +31,28 @@ def main():
 # This function sorts through df and uses a running average for the expected value
 # of an attribute for the next game if a player has played in fewer than insert variable here
 # games. Otherwise  it usespasses a rolling average of the past three instances of the attribute.
-def RollingAvgFill(df,feature):
+def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all matricies in the for loop because writeing data to df writes to a copy instead
   #GamesPlayed = np.array([])
   for player in df.playerName.drop_duplicates():
     PlayerGames = df[df.playerName==player]
+    PlayerGames.index = range(len(PlayerGames))
     #GamesPlayed = np.append(GamesPlayed,len(PlayerGames))
-    if 5 > len(PlayerGames):
-      for i in PlayerGames.index:
-        PlayerGames.loc[i,'average'] = PlayerGames.loc[:i,feature].mean()
-    else:
+    if 1 >= len(PlayerGames):
+      PlayerGames.loc[:,feature] = np.nan
+    elif 5 > len(PlayerGames):
       PlayerGames.index = range(len(PlayerGames))
+      for i in PlayerGames.index:
+        PlayerGames.loc[i,'ravg'] = PlayerGames.loc[:i,feature].mean()
+      rollingmean = PlayerGames.ravg
+    else:
       rollingmean = PlayerGames[feature].rolling(3).mean()
-    rollingmean.index = range(len(rollingmean))
-    rollingmean = rollingmean.drop(len(rollingmean)-1,axis=0)
+      rollingmean.iloc[:2] = PlayerGames[feature].iloc[:2]
+      print rollingmean
     rollingmean.loc[-1] = np.nan
+    rollingmean = rollingmean.drop(len(rollingmean)-2,axis=0)
     rollingmean = rollingmean.sort_index()
-    rollingmean.iloc[1:3] = PlayerGames[feature].iloc[:2]
-    df.loc[df.playerName==player, feature] = rollingmean
+    df.loc[df.playerName==player, feature] = rollingmean# currently only puts in nan values
+    print df.loc[df.playerName==player, feature]
   #plt.figure()
   #plt.hist(GamesPlayed)
   #plt.show()
@@ -88,7 +93,6 @@ def GameDataEDA(X, feature):
     plt.title(name)
   print PlayerStat[['penaltyMinutes','rollingAvg3']]
   plt.show()
-  
 
 # Takes in the main data frame and returns a streamlined dataframe
 def drop(X):
