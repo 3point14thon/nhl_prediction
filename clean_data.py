@@ -32,12 +32,10 @@ def main():
 # of an attribute for the next game if a player has played in fewer than insert variable here
 # games. Otherwise  it usespasses a rolling average of the past three instances of the attribute.
 def RollingAvgFill(df,feature):
-  #i = 10
-  dingus = ''
-  GamesPlayed = np.array([])
+  #GamesPlayed = np.array([])
   for player in df.playerName.drop_duplicates():
     PlayerGames = df[df.playerName==player]
-    GamesPlayed = np.append(GamesPlayed,len(PlayerGames))
+    #GamesPlayed = np.append(GamesPlayed,len(PlayerGames))
     if 5 > len(PlayerGames):
       for i in PlayerGames.index:
         PlayerGames.loc[i,'average'] = PlayerGames.loc[:i,feature].mean()
@@ -49,12 +47,10 @@ def RollingAvgFill(df,feature):
     rollingmean.loc[-1] = np.nan
     rollingmean = rollingmean.sort_index()
     rollingmean.iloc[1:3] = PlayerGames[feature].iloc[:2]
-    #if i == len(df.playerName.drop_duplicates()): break
-    #i += 1
     df.loc[df.playerName==player, feature] = rollingmean
-  plt.figure()
-  plt.hist(GamesPlayed)
-  plt.show()
+  #plt.figure()
+  #plt.hist(GamesPlayed)
+  #plt.show()
   return df
 
 def graphTOI(df,feature):
