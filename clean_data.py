@@ -32,7 +32,7 @@ def main():
 # of an attribute for the next game if a player has played in fewer than insert variable here
 # games. Otherwise  it usespasses a rolling average of the past three instances of the attribute.
 def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all matricies in the for loop because writeing data to df writes to a copy instead
-  #GamesPlayed = np.array([])
+  newdf = pd.DataFrame()
   for player in df.playerName.drop_duplicates():
     PlayerGames = df[df.playerName==player]
     PlayerGames.index = range(len(PlayerGames))
@@ -44,6 +44,7 @@ def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all 
       for i in PlayerGames.index:
         PlayerGames.loc[i,'ravg'] = PlayerGames.loc[:i,feature].mean()
       rollingmean = PlayerGames.ravg
+      PlayerGames = PlayerGames.drop('ravg',axis=1)
     else:
       rollingmean = PlayerGames[feature].rolling(3).mean()
       rollingmean.iloc[:2] = PlayerGames[feature].iloc[:2]
@@ -52,11 +53,19 @@ def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all 
     rollingmean = rollingmean.drop(len(rollingmean)-2,axis=0)
     rollingmean = rollingmean.sort_index()
     df.loc[df.playerName==player, feature] = rollingmean# currently only puts in nan values
-    print df.loc[df.playerName==player, feature]
+    PlayerGames[feature+'OffSet'] = rollingmean
+    newdf = newdf.append(PlayerGames)
+    newdf = newdf.drop(feature,axis=1)
   #plt.figure()
   #plt.hist(GamesPlayed)
   #plt.show()
-  return df
+    #df.loc[df.playerName==player, feature] = rollingmean# currently only puts in nan values
+  newdf = newdf.drop(feature,axis=1)
+  print newdf 
+  #plt.figure()
+  #plt.hist(GamesPlayed)
+  #plt.show()
+  return newdf
 
 def graphTOI(df,feature):
   i = 0
