@@ -19,15 +19,16 @@ def main():
   #BirthyearVDraftyear(BirthNDraft)
   #print nanCount(df)
   #GameDataEDA(df,'shiftsPerGame')
-  #df = drop(df)
+  df = drop(df)
   df = df.sort_values('gameDate')
-  df = RollingAvgFill(df,'timeOnIcePerGame')
-  df = RollingAvgFill(df,'penaltyMinutes')
-  df = RollingAvgFill(df,'shiftsPerGame')
-  df = df.dropna(axis=0)
+  #df = RollingAvgFill(df,'timeOnIcePerGame')
+  #df = RollingAvgFill(df,'penaltyMinutes')
+  #df = RollingAvgFill(df,'shiftsPerGame')
+  #df = df.dropna(axis=0)
   #graphTOI(df,'shiftsPerGame')
   df.to_csv('clean_hky_stats.csv',encoding='utf-8')
 
+#it might be a better idea to use another modle to model the values rollingavgfill would deal with
 # This function sorts through df and uses a running average for the expected value
 # of an attribute for the next game if a player has played in fewer than insert variable here
 # games. Otherwise  it usespasses a rolling average of the past three instances of the attribute.
@@ -106,7 +107,7 @@ def GameDataEDA(X, feature):
 # Takes in the main data frame and returns a streamlined dataframe
 def drop(X):
   #droping unnecisary features, redundent features, or features directly related   to the target variable
-  X = X.drop(['Unnamed: 0','gamesPlayed','gameId','playerBirthCity','playerBirthCountry','plusMinus','playerId','playerBirthStateProvince','shootingPctg','playerFirstName','playerLastName','playerNationality','playerDraftYear''assists','gameWinningGoals','goals','otGoals','points','ppGoals','ppPoints','shGoals','shPoints'],axis=1) 
+  X = X.drop(['Unnamed: 0','gamesPlayed','gameId','playerBirthCity','playerBirthCountry','plusMinus','playerId','playerBirthStateProvince','shootingPctg','playerFirstName','playerLastName','playerNationality','playerDraftYear','assists','gameWinningGoals','goals','otGoals','points','ppGoals','ppPoints','shGoals','shPoints'],axis=1) 
   #sepparating out features I want to deal with later, figure out if timeOnIcePerGame is an average of all games or per the game in question
 #  X = X.drop(['penaltyMinutes','shiftsPerGame','shots','timeOnIcePerGame'], axis=1)
   return X
