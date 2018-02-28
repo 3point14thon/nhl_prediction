@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn import preprocessing
 from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.pipeline import Pipeline
 
 def main():
   df = pd.read_csv('clean_hky_stats.csv')
@@ -10,9 +12,8 @@ def main():
   df.gameDate = pd.to_datetime(df.gameDate)
   df.playerBirthDate = pd.to_datetime(df.playerBirthDate)
   df = df.sort_values(by='gameDate')
-  df = df.reindex()
+  df = df.reset_index(drop=True)
   #df = df.drop(['playerBirthDate','gameDate'],axis=1)
-  print df.dtypes
   df = encode(df)
   
   #Train/Test Split
@@ -31,12 +32,10 @@ def main():
   yTrainSPG = Train.shiftsPerGame
   XTrain = Train.drop(['flPoints','timeOnIcePerGame','penaltyMinutes','shiftsPerGame'],axis=1)
   XTest = Test.drop(['flPoints','timeOnIcePerGame','penaltyMinutes','shiftsPerGame'],axis=1)
-  
   #model: time on ice per game
   #using OLS to begin with because it's easy and quick
   OLS = LinearRegression()
-  print(cross_val_score(OLS,XTrain,yTrainTOI))# cross validation wont work because it's a time series
-
+  backcheck(XTrain,yTrainTOI,OLS)
   pp = preprocessing.Normalizer()
   pp.fit(XTrain)
   XTrain = pp.transform(XTrain)
@@ -57,6 +56,18 @@ def encode(df):
                                   'playerPositionCode','teamAbbrev'])
   df.playerShootsCatches = df.playerShootsCatches.map({'R':1,'L':0})
   return df
+
+def backcheck(X,y,model):
+  splits =TimeSeriesSplit(n_splits=3)
+  for TrainIndex, TestIndex in splits.split(X):
+    XTrain = X.iloc[TrainIndex,:]
+    XTest = X.iloc[TestIndex,:]
+    yTrain = y.iloc[TrainIndex]
+    yTest = y.iloc[TestIndex]
+    model.fit(XTrain,yTrain)
+    print model.score(XTest,yTest)
+
+  print(cross_val_score(OLS,XTrain,yTrainTOI))# cross validation wont work because it's a time series
 
 
 main()
