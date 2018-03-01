@@ -55,6 +55,8 @@ PMF for age at draft was over 60% for 18.
 Due to the nature of the data it makes the most sense to use one hot encoding
 on many of the features the most important of which are player name, team, and opponent team. Encoding these causes the number of features to boom. I also suspect some of these features won't be important to the prediction. Support vector regression seems like a natural fit for this case. It should narrow the number of features to only those relevant and doesn't depend on statistical significance for determining the success of the model. Meaning the number of features I have shouldn't adversely effect the model.
 
+I started by testing OLS on one of the "Future" data set models and back testing it with three splits. It performed poorly with all three splits yeilding coefficient of determinations that are on the 10 to the 12th order wich seems suspicious.
+
 ### Improvements
 As this project hasn't yielded a model yet it's difficult for me to say what
 improvements will impact it the most. I have considered using a different method

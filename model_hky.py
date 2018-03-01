@@ -1,5 +1,7 @@
 import pandas as pd
 #import joblib don't have this librairy yet 
+import matplotlib 
+import matplotlib.pyplot as plt
 from sklearn import preprocessing
 from sklearn.svm import SVR
 from sklearn.linear_model import LinearRegression
@@ -34,18 +36,17 @@ def main():
   XTest = Test.drop(['flPoints','timeOnIcePerGame','penaltyMinutes','shiftsPerGame'],axis=1)
   #model: time on ice per game
   #using OLS to begin with because it's easy and quick
+  StanScale = preprocessing.StandardScaler()
   OLS = LinearRegression()
+  StanScale_OLS = Pipeline([('Standardize',StanScale),
+                            ('LeastMeansRegression',OLS)])
   backcheck(XTrain,yTrainTOI,OLS)
   pp = preprocessing.Normalizer()
   pp.fit(XTrain)
   XTrain = pp.transform(XTrain)
   XTest = pp.transform(XTest)
   svr = SVR()
-  parameters = {'kernel':('linear','rbf'),'C':(0.001,0.01,0.1,1,10,100,1000),
-                'gamma':(0.00001,0.0001,0.001,0.01,0.1,1,10),
-                'epsilon':(0.0001,0.001,0.01,0.1,1)}
   print 'Generateing model, this may take a while'
-  model = GridSearchCV(svr,parameters)
   model.fit(XTrain,yTrain)
   joblib.dump(model,'SVR_model.pkl')
   print model.get_params()
@@ -66,8 +67,9 @@ def backcheck(X,y,model):
     yTest = y.iloc[TestIndex]
     model.fit(XTrain,yTrain)
     print model.score(XTest,yTest)
-
-  print(cross_val_score(OLS,XTrain,yTrainTOI))# cross validation wont work because it's a time series
-
-
+    plt.figure()
+    plt.scatter(model.predict(XTrain),yTrain)
+    plt.ylim([0,2000])
+    plt.xlim([0,2000])
+    plt.show()
 main()
