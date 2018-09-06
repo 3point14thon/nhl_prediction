@@ -14,10 +14,6 @@ This project is intended to predict scores for my fantasey league given a set of
 
 ### Methods
 
-### Python VS iPython
-Jupyter Notebook using iPython is the standard for this sort of project, it's
-easy to use and easy to follow. That being said all of my coding files for this project are in python rather than iPython. Why? I have limited access on one of the systems I am using to make this project and am unable to install jupyter note book or iPython. The amount of time I use that system is large enough where I felt it would be more beneficial to code in Python than iPython.
-
 ### Making the CSV
 Currently I am scraping json data from the NHL statistics site with some
 in-site filters applied,
