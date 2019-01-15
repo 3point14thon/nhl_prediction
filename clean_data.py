@@ -27,16 +27,25 @@ def main():
   df = df.dropna(axis=0)
   df.to_csv('clean_hky_stats.csv',encoding='utf-8')
 
-#it might be a better idea to use another modle to model the values rollingavgfill would deal with
-# This function sorts through df and uses a running average for the expected value
-# of an attribute for the next game if a player has played in fewer than insert variable here
-# games. Otherwise  it usespasses a rolling average of the past three instances of the attribute.
-def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all matricies in the for loop because writeing data to df writes to a copy instead
+#it might be a better idea to use another model for the values rollingavgfill would deal with
+def rolling_avg_fill(df,feature):
+  '''
+  This function sorts through df and uses a running average for the expected value
+  of an attribute for the next game if a player has played in fewer than insert variable here
+  games. Otherwise  it passes a rolling average of the past three instances of the attribute.
+
+  Args:
+    df: dataframe containing the specified feature
+    feature: the feature to have the rolling avg applied to
+
+  Returns:
+    newdf:
+
+  '''
   newdf = pd.DataFrame()
   for player in df.playerName.drop_duplicates():
     PlayerGames = df[df.playerName==player]
     PlayerGames.index = range(len(PlayerGames))
-    #GamesPlayed = np.append(GamesPlayed,len(PlayerGames))
     if 1 >= len(PlayerGames):
       PlayerGames.loc[:,feature] = np.nan
     elif 5 > len(PlayerGames):
@@ -48,7 +57,6 @@ def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all 
     else:
       rollingmean = PlayerGames[feature].rolling(3).mean()
       rollingmean.iloc[:2] = PlayerGames[feature].iloc[:2]
-      print rollingmean
     rollingmean.loc[-1] = np.nan
     rollingmean = rollingmean.drop(len(rollingmean)-2,axis=0)
     rollingmean = rollingmean.sort_index()
@@ -56,18 +64,9 @@ def RollingAvgFill(df,feature):# TODO make the return matrix an agrigate of all 
     PlayerGames[feature+'OffSet'] = rollingmean
     newdf = newdf.append(PlayerGames)
     newdf = newdf.drop(feature,axis=1)
-  #plt.figure()
-  #plt.hist(GamesPlayed)
-  #plt.show()
-    #df.loc[df.playerName==player, feature] = rollingmean# currently only puts in nan values
-  newdf = newdf.drop(feature,axis=1)
-  print newdf 
-  #plt.figure()
-  #plt.hist(GamesPlayed)
-  #plt.show()
   return newdf
 
-def graphTOI(df,feature):
+def graph_toi(df,feature):
   i = 0
   c = ['r','g','b','y']
   positions = df.playerPositionCode.drop_duplicates()
@@ -79,7 +78,7 @@ def graphTOI(df,feature):
   plt.legend(positions)
   plt.show()
 
-def GameDataEDA(X, feature):
+def game_dat_eda(X, feature):
   names = X.playerName.drop_duplicates().iloc[:3]
   for name in names:
     PlayerStat = X[X.playerName==name].sort_values(by='gameDate')
@@ -112,7 +111,7 @@ def drop(X):
   return X
 
 # Performs some baisic EDA to determine if nan columns are worth keeping
-def FillEDA(X):
+def fill_eda(X):
   naX = X[X.isnull()]
   plt.figure()
   plt.hist(flPoints)
@@ -127,7 +126,7 @@ def FillEDA(X):
 
 # takes in a dataframe containing playername, playerbirthdate, and flpoints and
 # plots both draftyear and birthyear vs flpoints on a scatterplot
-def BirthyearVDraftyear(X):
+def birth_year_draft_year(X):
   #translates birth year for a better comparison
   X['playerBirthDate'] = X.playerBirthDate.dt.year + 18 
   plt.figure()
@@ -140,5 +139,6 @@ def BirthyearVDraftyear(X):
   plt.ylim([0,17])
   plt.show()
 
-main()
+if __name__ == '__main__':
+  main()
 
