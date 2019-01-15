@@ -14,10 +14,6 @@ This project is intended to predict scores for my fantasey league given a set of
 
 ### Methods
 
-### Python VS iPython
-Jupyter Notebook using iPython is the standard for this sort of project, it's
-easy to use and easy to follow. That being said all of my coding files for this project are in python rather than iPython. Why? I have limited access on one of the systems I am using to make this project and am unable to install jupyter note book or iPython. The amount of time I use that system is large enough where I felt it would be more beneficial to code in Python than iPython.
-
 ### Making the CSV
 Currently I am scraping json data from the NHL statistics site with some
 in-site filters applied,
@@ -54,6 +50,8 @@ PMF for age at draft was over 60% for 18.
 ### Modeling
 Due to the nature of the data it makes the most sense to use one hot encoding
 on many of the features the most important of which are player name, team, and opponent team. Encoding these causes the number of features to boom. I also suspect some of these features won't be important to the prediction. Support vector regression seems like a natural fit for this case. It should narrow the number of features to only those relevant and doesn't depend on statistical significance for determining the success of the model. Meaning the number of features I have shouldn't adversely effect the model.
+
+I started by testing OLS on one of the "Future" data set models and back testing it with three splits. It performed poorly with all three splits yeilding coefficient of determinations that are on the 10 to the 12th order wich seems suspicious. Standardizing the increases the coefficient of determination by another 12 fold or so. Swapping OLS out for ridge regression produces a set of more resonable coefficients of determination, 0.6 to 0.7.
 
 ### Improvements
 As this project hasn't yielded a model yet it's difficult for me to say what
