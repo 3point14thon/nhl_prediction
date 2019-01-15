@@ -5,27 +5,26 @@ import matplotlib.pyplot as plt
 import matplotlib
 
 def main():
+  '''
+  Generates a csv file containing cleaned data.
+
+  Returns: None
+  '''
   #Note that this csv file does NOT contain statistics pertaining to goalies
   df = pd.read_csv('hky_stats.csv')
   df['flPoints'] = df.goals*3.0 + df.shots*0.1 + df.assists*2 + df.ppPoints + df.shPoints*2
   df.gameDate = pd.to_datetime(df.gameDate)
   df.playerBirthDate = pd.to_datetime(df.playerBirthDate)
   BirthNDraft = df[['playerName','playerBirthDate','playerDraftYear','flPoints']]
-  # Filling draft number and round with the means of thier columns
-  #FillEDA(NanColumns,y)
   NanColumns = df[['playerDraftOverallPickNo','playerDraftRoundNo']]
   for column in NanColumns.columns:
     df[column].fillna(NanColumns[column].mean(),inplace=True)
-  #BirthyearVDraftyear(BirthNDraft)
-  #print nanCount(df)
-  #GameDataEDA(df,'shiftsPerGame')
   df = drop(df)
   df = df.sort_values('gameDate')
-  #df = RollingAvgFill(df,'timeOnIcePerGame')
-  #df = RollingAvgFill(df,'penaltyMinutes')
-  #df = RollingAvgFill(df,'shiftsPerGame')
-  #df = df.dropna(axis=0)
-  #graphTOI(df,'shiftsPerGame')
+  df['rolling_toi'] = RollingAvgFill(df,'timeOnIcePerGame')
+  df['rolling_penalty_min'] = RollingAvgFill(df,'penaltyMinutes')
+  df['rolling_spg'] = RollingAvgFill(df,'shiftsPerGame')
+  df = df.dropna(axis=0)
   df.to_csv('clean_hky_stats.csv',encoding='utf-8')
 
 #it might be a better idea to use another modle to model the values rollingavgfill would deal with
@@ -112,12 +111,7 @@ def drop(X):
 #  X = X.drop(['penaltyMinutes','shiftsPerGame','shots','timeOnIcePerGame'], axis=1)
   return X
 
-#gives the number of NaNs in every column in a Data frame
-def nanCount(df):
-  for column in df.columns:
-    print str(df[column].isnull().sum().sum()) + ' nans in ' + column
-
-# Performs some baisic EDA to determine if nan columns are worth keeping 
+# Performs some baisic EDA to determine if nan columns are worth keeping
 def FillEDA(X):
   naX = X[X.isnull()]
   plt.figure()
